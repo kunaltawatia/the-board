@@ -9,7 +9,9 @@ app.get("/", function (req, res) {
   res.send("server running!");
 });
 
-http.listen(port);
+http.listen(port, () => {
+  console.log("HTTP server started at " + port );
+});
 
 io.on("connection", function (socket) {
   console.log("Connected!");
