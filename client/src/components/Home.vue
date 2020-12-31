@@ -38,6 +38,16 @@ export default {
 		disconnect() {
 			this.isConnected = false;
 		},
+
+		draw(data) {
+			this.drawAction(data);
+		},
+
+		drawBurst(actions) {
+			for (let data of actions) {
+				this.drawAction(data);
+			}
+		},
 	},
 
 	methods: {
@@ -47,7 +57,12 @@ export default {
 			canvas.height = canvas.clientHeight;
 		},
 
-		drawLine(x0, y0, x1, y1, color, emit) {
+		drawAction(data) {
+			const { x0, y0, x1, y1, color } = data;
+			this.drawLine(x0, y0, x1, y1, color, false);
+		},
+
+		drawLine(x0, y0, x1, y1, color, emit = false) {
 			const canvas = this.$refs.wb;
 			var context = canvas.getContext("2d");
 			var w = canvas.width;
@@ -61,15 +76,7 @@ export default {
 			context.stroke();
 			context.closePath();
 
-			if (emit) {
-				this.$socket.emit("drawing", {
-					x0,
-					y0,
-					x1,
-					y1,
-					color: color,
-				});
-			}
+			if (emit) this.$socket.emit("draw", { x0, y0, x1, y1, color });
 		},
 
 		normalizeMouse(e) {
@@ -86,10 +93,22 @@ export default {
 			return { x, y };
 		},
 
-		setCurrent(location) {
+		addStroke(e) {
+			const location = this.normalizeMouse(e);
+			this.drawLine(
+				this.current.x,
+				this.current.y,
+				location.x,
+				location.y,
+				this.current.color,
+				true
+			);
+		},
+
+		setCurrent(content) {
 			this.current = {
 				...this.current,
-				...location,
+				...content,
 			};
 		},
 
@@ -100,41 +119,21 @@ export default {
 
 		mouseup(e) {
 			if (!this.drawing) return;
-
-			const location = this.normalizeMouse(e);
-			this.drawLine(
-				this.current.x,
-				this.current.y,
-				location.x,
-				location.y,
-				this.current.color,
-				true
-			);
-
+			this.addStroke(e);
 			this.drawing = false;
 		},
 
-		onMouseMove(e) {
+		mousemove(e) {
 			if (!this.drawing) return;
-
-			const location = this.normalizeMouse(e);
-			this.drawLine(
-				this.current.x,
-				this.current.y,
-				location.x,
-				location.y,
-				this.current.color,
-				true
-			);
-
-			this.setCurrent(location);
+			this.addStroke(e);
+			this.setCurrent(this.normalizeMouse(e));
 		},
 
 		throttle(e) {
 			const time = new Date().getTime();
 			if (time - this.current.previousDrawTime >= 10) {
 				this.current.previousDrawTime = time;
-				this.onMouseMove(e);
+				this.mousemove(e);
 			}
 		},
 	},

@@ -10,20 +10,21 @@ const io = require("socket.io")(http, {
 
 const port = parseInt(process.env.PORT || "3000");
 
-app.get("/", function (req, res) {
-	res.send("server running!");
-});
+app.get("/", (req, res) => res.send("server running!"));
 
 http.listen(port);
 
-io.on("connection", function (socket) {
-	console.log("Connected!");
+/**
+ * SOCKETS AHEAD !
+ */
 
-	socket.on("refreshTime", () => {
-		socket.emit("time", new Date().toUTCString());
-	});
+let actions = [];
 
-	socket.on("disconnect", () => {
-		console.log("Disconnected!");
+io.on("connection", (socket) => {
+	socket.emit("drawBurst", actions);
+
+	socket.on("draw", (data) => {
+		actions.push(data);
+		socket.broadcast.emit("draw", data);
 	});
 });
