@@ -27,4 +27,9 @@ io.on("connection", (socket) => {
 		actions.push(data);
 		socket.broadcast.emit("draw", data);
 	});
+
+	socket.on("clear", () => {
+		actions = [];
+		socket.broadcast.emit("clear");
+	});
 });

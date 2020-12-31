@@ -1,13 +1,16 @@
 <template>
-	<div id="whiteboard-container" v-on:resize="resize">
-		<canvas
-			id="whiteboard"
-			ref="wb"
-			v-on:mousedown="mousedown"
-			v-on:mouseup="mouseup"
-			v-on:mouseout="mouseup"
-			v-on:mousemove="throttle"
-		/>
+	<div>
+		<div id="whiteboard-container" v-on:resize="resize">
+			<canvas
+				id="whiteboard"
+				ref="wb"
+				v-on:mousedown="mousedown"
+				v-on:mouseup="mouseup"
+				v-on:mouseout="mouseup"
+				v-on:mousemove="throttle"
+			/>
+		</div>
+		<button @click="() => clear(true)">clear</button>
 	</div>
 </template>
 
@@ -47,6 +50,10 @@ export default {
 			for (let data of actions) {
 				this.drawAction(data);
 			}
+		},
+
+		clear() {
+			this.clear();
 		},
 	},
 
@@ -135,6 +142,11 @@ export default {
 				this.current.previousDrawTime = time;
 				this.mousemove(e);
 			}
+		},
+
+		clear(emit = false) {
+			this.resize();
+			if (emit) this.$socket.emit("clear");
 		},
 	},
 };
