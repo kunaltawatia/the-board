@@ -1,30 +1,32 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "the socket.io server for the board",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/kunaltawatia/the-board.git"
-  },
-  "keywords": [
-    "socket"
-  ],
-  "author": "kunaltawatia",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/kunaltawatia/the-board/issues"
-  },
-  "homepage": "https://github.com/kunaltawatia/the-board#readme",
-  "dependencies": {
-    "express": "^4.17.1",
-    "socket.io": "^3.0.4"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.6"
-  }
+	"name": "server",
+	"version": "1.0.0",
+	"description": "the socket.io server for the board",
+	"main": "index.js",
+	"scripts": {
+		"start": "node index.js",
+		"dev": "nodemon index.js",
+		"format": "prettier --write *.js"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/kunaltawatia/the-board.git"
+	},
+	"keywords": [
+		"socket"
+	],
+	"author": "kunaltawatia",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/kunaltawatia/the-board/issues"
+	},
+	"homepage": "https://github.com/kunaltawatia/the-board#readme",
+	"dependencies": {
+		"express": "^4.17.1",
+		"socket.io": "^3.0.4"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.6",
+		"prettier": "^2.2.1"
+	}
 }
