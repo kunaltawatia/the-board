@@ -1,167 +1,54 @@
 <template>
-	<div>
-		<div id="whiteboard-container" v-on:resize="resize">
-			<canvas
-				id="whiteboard"
-				ref="wb"
-				v-on:mousedown="mousedown"
-				v-on:mouseup="mouseup"
-				v-on:mouseout="mouseup"
-				v-on:mousemove="throttle"
-			/>
-		</div>
-		<button @click="() => clear(true)">clear</button>
+	<div id= "home">
+		<div @click="changeRoute('create')">Create a Board</div>
+		<div @click="changeRoute('join')">Join a Board</div>
 	</div>
 </template>
 
 <script>
 export default {
-	name: "Home",
-
-	data() {
-		return {
-			isConnected: false,
-			drawing: false,
-			current: {
-				color: "black",
-				previousDrawTime: 0,
-			},
-		};
-	},
-
-	mounted() {
-		this.resize();
-	},
-
+	name: 'Home',
 	sockets: {
-		connect() {
-			this.isConnected = true;
-		},
-
-		disconnect() {
-			this.isConnected = false;
-		},
-
-		draw(data) {
-			this.drawAction(data);
-		},
-
-		drawBurst(actions) {
-			for (let data of actions) {
-				this.drawAction(data);
-			}
-		},
-
-		clear() {
-			this.clear();
-		},
+		newBoard(data) {
+			this.$router.push(`/create/${data}`);
+		}
 	},
-
 	methods: {
-		resize() {
-			const canvas = this.$refs.wb;
-			canvas.width = canvas.clientWidth;
-			canvas.height = canvas.clientHeight;
-		},
-
-		drawAction(data) {
-			const { x0, y0, x1, y1, color } = data;
-			this.drawLine(x0, y0, x1, y1, color, false);
-		},
-
-		drawLine(x0, y0, x1, y1, color, emit = false) {
-			const canvas = this.$refs.wb;
-			var context = canvas.getContext("2d");
-			var w = canvas.width;
-			var h = canvas.height;
-
-			context.beginPath();
-			context.moveTo(x0 * w, y0 * h);
-			context.lineTo(x1 * w, y1 * h);
-			context.strokeStyle = color;
-			context.lineWidth = 2;
-			context.stroke();
-			context.closePath();
-
-			if (emit) this.$socket.emit("draw", { x0, y0, x1, y1, color });
-		},
-
-		normalizeMouse(e) {
-			let { clientX: x, clientY: y } = e;
-			const canvas = this.$refs.wb;
-			const rect = canvas.getBoundingClientRect();
-
-			x -= rect.x;
-			x /= rect.width;
-
-			y -= rect.y;
-			y /= rect.height;
-
-			return { x, y };
-		},
-
-		addStroke(e) {
-			const location = this.normalizeMouse(e);
-			this.drawLine(
-				this.current.x,
-				this.current.y,
-				location.x,
-				location.y,
-				this.current.color,
-				true
-			);
-		},
-
-		setCurrent(content) {
-			this.current = {
-				...this.current,
-				...content,
-			};
-		},
-
-		mousedown(e) {
-			this.drawing = true;
-			this.setCurrent(this.normalizeMouse(e));
-		},
-
-		mouseup(e) {
-			if (!this.drawing) return;
-			this.addStroke(e);
-			this.drawing = false;
-		},
-
-		mousemove(e) {
-			if (!this.drawing) return;
-			this.addStroke(e);
-			this.setCurrent(this.normalizeMouse(e));
-		},
-
-		throttle(e) {
-			const time = new Date().getTime();
-			if (time - this.current.previousDrawTime >= 10) {
-				this.current.previousDrawTime = time;
-				this.mousemove(e);
+		changeRoute(route) {
+			if(route == 'create') {
+				fetch('http://www.geoplugin.net/json.gp').then((res) => {
+					return res.json();
+				}).then((data) => {
+					const {geoplugin_request} = data;
+					this.$socket.emit('newBoard', {
+						ip: geoplugin_request,
+						timestamp: new Date().getTime()
+					});
+				});
+			} else {
+				this.$router.push(`/${route}`);
 			}
-		},
-
-		clear(emit = false) {
-			this.resize();
-			if (emit) this.$socket.emit("clear");
-		},
-	},
-};
+		}
+	}
+}
 </script>
 
 <style scoped>
-#whiteboard-container {
-	height: 90vh;
-	width: 90vw;
-	border: 2px dashed gray;
-	resize: both;
-	overflow: auto;
+#home {
+	display: flex;
+	flex-direction: column;
+	background: #e0e0e0;
+	padding: 3rem;
 }
-#whiteboard {
-	height: 98%;
-	width: 100%;
+
+#home div {
+	margin: 0.5rem;
+	padding: 0.5rem 2rem;
+
+	background-color: ivory;
+	text-align: center;
+	text-decoration: none;
+	color: initial;
+	cursor: pointer;
 }
 </style>
