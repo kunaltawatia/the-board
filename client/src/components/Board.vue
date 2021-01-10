@@ -1,8 +1,6 @@
 <template>
 	<div>
-		<div class="linkToBoard">
-			Share: {{boardId}}
-		</div>
+		<div class="linkToBoard">Share: {{ boardId }}</div>
 		<div id="whiteboard-container" v-on:resize="resize">
 			<canvas
 				id="whiteboard"
@@ -19,7 +17,7 @@
 
 <script>
 export default {
-	name: "Create",
+	name: "Board",
 	data() {
 		return {
 			isConnected: false,
@@ -28,17 +26,18 @@ export default {
 				color: "black",
 				previousDrawTime: 0,
 			},
-			boardId: ''
+			boardId: "",
 		};
 	},
 
 	created() {
 		const url = window.location.pathname;
-		this.boardId = url.split('/')[2];
+		this.boardId = url.split("/")[2];
 	},
 
 	mounted() {
 		this.resize();
+		this.$socket.emit("getBoard", this.boardId);
 	},
 
 	sockets: {
@@ -51,14 +50,13 @@ export default {
 		},
 
 		draw(data) {
-			const {slug, action} = data;
-			if(this.boardId == slug) {
+			const { slug, action } = data;
+			if (this.boardId == slug) {
 				this.drawAction(action);
 			}
 		},
 
 		drawBurst(actions) {
-			console.log(actions)
 			for (let action of actions) {
 				this.drawAction(action);
 			}
@@ -98,7 +96,7 @@ export default {
 			if (emit) {
 				this.$socket.emit("draw", {
 					slug: this.boardId,
-					action: { x0, y0, x1, y1, color }
+					action: { x0, y0, x1, y1, color },
 				});
 			}
 		},
@@ -165,7 +163,7 @@ export default {
 			this.resize();
 			if (emit) this.$socket.emit("clear", this.boardId);
 		},
-	}
+	},
 };
 </script>
 

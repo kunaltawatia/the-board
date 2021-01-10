@@ -1,5 +1,5 @@
 <template>
-	<div id= "home">
+	<div id="home">
 		<div @click="changeRoute('create')">Create a Board</div>
 		<div @click="changeRoute('join')">Join a Board</div>
 	</div>
@@ -7,30 +7,22 @@
 
 <script>
 export default {
-	name: 'Home',
+	name: "Home",
 	sockets: {
 		newBoard(data) {
-			this.$router.push(`/create/${data}`);
-		}
+			this.$router.push(`/board/${data}`);
+		},
 	},
 	methods: {
 		changeRoute(route) {
-			if(route == 'create') {
-				fetch('http://www.geoplugin.net/json.gp').then((res) => {
-					return res.json();
-				}).then((data) => {
-					const {geoplugin_request} = data;
-					this.$socket.emit('newBoard', {
-						ip: geoplugin_request,
-						timestamp: new Date().getTime()
-					});
-				});
+			if (route == "create") {
+				this.$socket.emit("newBoard");
 			} else {
 				this.$router.push(`/${route}`);
 			}
-		}
-	}
-}
+		},
+	},
+};
 </script>
 
 <style scoped>

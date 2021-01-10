@@ -8,7 +8,7 @@ const io = require("socket.io")(http, {
 		methods: ["GET", "POST"],
 	},
 });
-const shajs = require('sha.js');
+const shajs = require("sha.js");
 
 const port = parseInt(process.env.PORT || "3000");
 
@@ -20,37 +20,32 @@ http.listen(port);
  * SOCKETS AHEAD !
  */
 
-let actions = [];
+let actions = {};
 
-const putData = ({slug, action}) => {
-	if(actions[slug]) {
-		actions[slug].push(action);
-	} else {
-		actions[slug] = [];
-	}
-}
+const putData = ({ slug, action }) => {
+	if (slug in actions) actions[slug].push(action);
+	else actions[slug] = [action];
+};
 
 const getData = (slug) => {
-	if(actions[slug]) {
-		return actions[slug];
-	} else {
-		return [];
-	}
-}
+	if (slug in actions) return actions[slug];
+	else return [];
+};
 
 const clearData = (slug) => {
-	actions[slug] = [];
-}
+	if (slug in actions) delete actions[slug];
+};
 
 io.on("connection", (socket) => {
-	const address = socket.handshake.headers.referer.split('/');
-	const slug = address[address.length - 1];
-	socket.emit("drawBurst", getData(slug));
+	socket.on("newBoard", () => {
+		const timestamp = Date.now();
+		const ip = socket.handshake.address;
+		const slug = shajs("sha256").update(`${ip}000${timestamp}`).digest("hex");
+		socket.emit("newBoard", slug);
+	});
 
-	socket.on("newBoard", (data) => {
-		const {ip, timestamp} = data;
-		const slug = shajs('sha256').update(`${ip}000${timestamp}`).digest('hex')
-		io.to(socket.id).emit('newBoard', slug);
+	socket.on("getBoard", (slug) => {
+		socket.emit("drawBurst", getData(slug));
 	});
 
 	socket.on("draw", (data) => {

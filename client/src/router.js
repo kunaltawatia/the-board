@@ -1,29 +1,29 @@
-import Vue from 'vue';
-import Router from 'vue-router';
+import Vue from "vue";
+import Router from "vue-router";
 
-import Home from './components/Home';
-import Create from './components/Create';
-import Join from './components/Join';
+import Home from "./components/Home";
+import Board from "./components/Board";
+import Join from "./components/Join";
 
 Vue.use(Router);
 
 export default new Router({
-	mode: 'history',
+	mode: "history",
 	routes: [
 		{
-			path: '/',
-			name: 'Home',
-			component: Home
+			path: "/",
+			name: "Home",
+			component: Home,
 		},
 		{
-			path: '/create/:slug',
-			name: 'Create',
-			component: Create
+			path: "/board/:slug",
+			name: "Board",
+			component: Board,
 		},
 		{
-			path: '/join',
-			name: 'Join',
-			component: Join
-		}
-	]
+			path: "/join",
+			name: "Join",
+			component: Join,
+		},
+	],
 });
