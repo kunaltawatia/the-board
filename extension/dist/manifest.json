@@ -1,0 +1,16 @@
+{
+  "manifest_version": 2,
+  "name": "the-board",
+  "content_scripts": [
+    {
+      "matches": [
+        "*://meet.google.com/*"
+      ],
+      "js": [
+        "js/content-script.js"
+      ]
+    }
+  ],
+  "version": "0.1.0",
+  "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
+}

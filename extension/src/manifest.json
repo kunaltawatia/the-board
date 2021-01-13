@@ -1,0 +1,10 @@
+{
+	"manifest_version": 2,
+	"name": "the-board",
+	"content_scripts": [
+		{
+			"matches": ["*://meet.google.com/*"],
+			"js": ["js/content-script.js"]
+		}
+	]
+}
