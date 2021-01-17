@@ -6,5 +6,8 @@
 			"matches": ["*://meet.google.com/*"],
 			"js": ["js/content-script.js"]
 		}
-	]
+	],
+	"chrome_url_overrides": {
+		"newtab": "override.html"
+	}
 }

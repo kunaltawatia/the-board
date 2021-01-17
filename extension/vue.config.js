@@ -1,10 +1,10 @@
 module.exports = {
 	pages: {
-		// override: {
-		// 	template: "public/index.html",
-		// 	entry: "./src/main.js",
-		// 	title: "override",
-		// },
+		override: {
+			template: "public/index.html",
+			entry: "./src/main.js",
+			title: "override",
+		},
 	},
 	pluginOptions: {
 		browserExtension: {

@@ -1,5 +1,5 @@
 <template>
-	<div class="board">
+	<div class="board" v-hotkey="keymap">
 		<div id="whiteboard-container" v-on:resize="resize">
 			<canvas
 				id="whiteboard"
@@ -10,14 +10,190 @@
 				v-on:mousemove="throttle"
 			/>
 		</div>
-		<button @click="() => clear(true)">clear</button>
+		<div class="action-container">
+			<div>
+				<button
+					v-for="color in colors"
+					v-bind:key="color"
+					:style="{ 'background-color': color }"
+					class="fab"
+					@click="() => changeColor(color)"
+				></button>
+				<button class="fab" @click="() => clear(true)">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						width="12"
+						height="12"
+						viewBox="0 0 21 22"
+					>
+						<defs>
+							<clipPath id="clip-path">
+								<rect width="21" height="22" fill="none" />
+							</clipPath>
+						</defs>
+						<g id="x" clip-path="url(#clip-path)">
+							<line
+								id="Line_1169"
+								data-name="Line 1169"
+								x1="21"
+								y2="22"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+							<line
+								id="Line_1170"
+								data-name="Line 1170"
+								x2="21"
+								y2="22"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+						</g>
+					</svg>
+				</button>
+				<button class="fab" @click="download">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						width="12"
+						height="12"
+						viewBox="0 0 24 21"
+					>
+						<defs>
+							<clipPath id="clip-path">
+								<rect width="24" height="21" fill="none" />
+							</clipPath>
+						</defs>
+						<g id="download" clip-path="url(#clip-path)">
+							<path
+								id="Path_971"
+								data-name="Path 971"
+								d="M27,15v4c0,1.1-1.194,2-2.667,2H5.667C4.194,21,3,20.1,3,19V15"
+								transform="translate(-3)"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+							<path
+								id="Path_972"
+								data-name="Path 972"
+								d="M7,10l8,5,8-5"
+								transform="translate(-3 -1.385)"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+							<line
+								id="Line_980"
+								data-name="Line 980"
+								y1="12"
+								transform="translate(12)"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+						</g>
+					</svg>
+				</button>
+			</div>
+			<div>
+				<button class="fab" @click="decreaseStrokeWidth">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						width="12"
+						height="2"
+						viewBox="0 0 21 2"
+					>
+						<defs>
+							<clipPath id="clip-path">
+								<rect width="19" fill="none" />
+							</clipPath>
+						</defs>
+						<g
+							id="minus"
+							transform="translate(1 1)"
+							clip-path="url(#clip-path)"
+						>
+							<line
+								id="minus-2"
+								data-name="minus"
+								x2="19"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+						</g>
+					</svg>
+				</button>
+				<p style="font-family: 'Roboto', arial, sans-serif; color: #707070">
+					{{ current.strokeWidth }}
+				</p>
+				<button class="fab" @click="increaseStrokeWidth">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						xmlns:xlink="http://www.w3.org/1999/xlink"
+						width="12"
+						height="12"
+						viewBox="0 0 25 25"
+					>
+						<defs>
+							<clipPath id="clip-path">
+								<rect width="25" height="25" fill="none" />
+							</clipPath>
+						</defs>
+						<g id="plus" clip-path="url(#clip-path)">
+							<line
+								id="Line_1082"
+								data-name="Line 1082"
+								y2="25"
+								transform="translate(13)"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+							<line
+								id="Line_1083"
+								data-name="Line 1083"
+								x2="25"
+								transform="translate(0 13)"
+								fill="none"
+								stroke="#707070"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+							/>
+						</g>
+					</svg>
+				</button>
+			</div>
+		</div>
 	</div>
 </template>
 
 <script>
+import { jsPDF } from "jspdf";
+
 export default {
 	name: "Board",
-	props: ["boardId"],
+	props: ["boardId", "close"],
 	data() {
 		return {
 			isConnected: false,
@@ -25,7 +201,9 @@ export default {
 			current: {
 				color: "black",
 				previousDrawTime: 0,
+				strokeWidth: 2,
 			},
+			colors: ["black", "red", "blue", "green", "yellow", "white"],
 		};
 	},
 
@@ -62,18 +240,28 @@ export default {
 	},
 
 	methods: {
+		decreaseStrokeWidth() {
+			this.current.strokeWidth = Math.max(2, this.current.strokeWidth - 2);
+		},
+		increaseStrokeWidth() {
+			this.current.strokeWidth = Math.min(32, this.current.strokeWidth + 2);
+		},
+
 		resize() {
 			const canvas = this.$refs.wb;
 			canvas.width = canvas.clientWidth;
-			canvas.height = canvas.clientHeight;
+			canvas.height = canvas.clientHeight - 4;
+			var context = canvas.getContext("2d");
+			context.fillStyle = "white";
+			context.fillRect(0, 0, canvas.width, canvas.height);
 		},
 
 		drawAction(data) {
-			const { x0, y0, x1, y1, color } = data;
-			this.drawLine(x0, y0, x1, y1, color, false);
+			const { x0, y0, x1, y1, color, strokeWidth } = data;
+			this.drawLine(x0, y0, x1, y1, color, strokeWidth, false);
 		},
 
-		drawLine(x0, y0, x1, y1, color, emit = false) {
+		drawLine(x0, y0, x1, y1, color, strokeWidth, emit = false) {
 			const canvas = this.$refs.wb;
 			var context = canvas.getContext("2d");
 			var w = canvas.width;
@@ -83,14 +271,14 @@ export default {
 			context.moveTo(x0 * w, y0 * h);
 			context.lineTo(x1 * w, y1 * h);
 			context.strokeStyle = color;
-			context.lineWidth = 2;
+			context.lineWidth = strokeWidth;
 			context.stroke();
 			context.closePath();
 
 			if (emit) {
 				this.$socket.emit("draw", {
 					slug: this.boardId,
-					action: { x0, y0, x1, y1, color },
+					action: { x0, y0, x1, y1, color, strokeWidth },
 				});
 			}
 		},
@@ -117,6 +305,7 @@ export default {
 				location.x,
 				location.y,
 				this.current.color,
+				this.current.strokeWidth,
 				true
 			);
 		},
@@ -157,23 +346,114 @@ export default {
 			this.resize();
 			if (emit) this.$socket.emit("clear", this.boardId);
 		},
+
+		changeColor(color) {
+			if (this.current.color === "white" && color !== "white") {
+				this.current.strokeWidth = 2;
+			} else if (color == "white") {
+				this.current.strokeWidth = 32;
+			}
+			this.current.color = color;
+		},
+
+		download() {
+			const canvas = this.$refs.wb;
+			let image = canvas.toDataURL("image/jpeg", 1.0);
+
+			var pdf = new jsPDF();
+
+			let width = pdf.internal.pageSize.getWidth();
+			let height = (canvas.height * width) / canvas.width;
+			pdf.addImage(image, "JPEG", 0, 0, width, height);
+			pdf.save(`Canvas-${new Date().toLocaleString()}.pdf`);
+
+			// 	.replace("image/jpeg", "image/octet-stream");
+			// let a = document.createElement("a");
+			// a.href = image;
+			// a.download = "image.jpeg";
+			// a.hidden = true;
+			// document.body.appendChild(a);
+			// a.click();
+			// document.body.removeChild(a);
+		},
+	},
+
+	computed: {
+		keymap() {
+			return {
+				"]": this.increaseStrokeWidth,
+				"[": this.decreaseStrokeWidth,
+				c: this.clear,
+				d: this.download,
+				r: () => this.changeColor("red"),
+				g: () => this.changeColor("green"),
+				b: () => this.changeColor("blue"),
+				y: () => this.changeColor("yellow"),
+				p: () => this.changeColor("black"),
+				e: () => this.changeColor("white"),
+			};
+		},
 	},
 };
 </script>
 
-<style scoped>
+<style>
+.vm--modal {
+	border-radius: 12px;
+}
+
 .board {
 	display: flex;
 	flex-direction: column;
-	height: 100%;
+	height: calc(100% - 24px);
+	padding: 12px;
 }
 
 #whiteboard-container {
-	border: 2px dashed gray;
+	border: 2px dashed #707070;
 	flex-grow: 1;
+	border-radius: 10px;
+	box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
 }
+
 #whiteboard {
-	height: 98%;
+	height: 100%;
 	width: 100%;
+}
+
+.action-container {
+	display: flex;
+	align-items: center;
+	margin-top: 8px;
+	justify-content: space-between;
+}
+
+.action-container > * {
+	display: flex;
+	align-items: center;
+}
+
+.fab {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 28px;
+	width: 28px;
+	border-radius: 50%;
+	margin: 6px;
+	border: 1px solid #eeeeee;
+	box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
+
+button {
+	outline: none;
+	border: none;
+	cursor: pointer;
+	background-color: white;
+	padding: 0;
+}
+
+button:focus {
+	outline: none;
 }
 </style>
