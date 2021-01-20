@@ -7,7 +7,7 @@ import VueSocketIO from "vue-socket.io";
 import App from "./App.vue";
 import router from "./router.js";
 
-const socket = SocketIO("http://localhost:3000");
+const socket = SocketIO("https://extension.webug.space");
 
 Vue.config.productionTip = false;
 

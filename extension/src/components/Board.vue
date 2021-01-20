@@ -18,8 +18,11 @@
 					:style="{ 'background-color': color }"
 					class="fab"
 					@click="() => changeColor(color)"
-				></button>
+				>
+					<span>{{ color }} {{ `\n( ${key[color]} )` }}</span>
+				</button>
 				<button class="fab" @click="() => clear(true)">
+					<span>{{ `clear \n( ${key.clear} )` }}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -59,6 +62,7 @@
 					</svg>
 				</button>
 				<button class="fab" @click="download">
+					<span>{{ `download \n( ${key.download} )` }}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -111,6 +115,9 @@
 			</div>
 			<div>
 				<button class="fab" @click="decreaseStrokeWidth">
+					<span>{{
+						`decrease stroke width \n( ${key["decrease stroke width"]} )`
+					}}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -145,6 +152,9 @@
 					{{ current.strokeWidth }}
 				</p>
 				<button class="fab" @click="increaseStrokeWidth">
+					<span>{{
+						`increase stroke width \n( ${key["increase stroke width"]} )`
+					}}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -204,6 +214,18 @@ export default {
 				strokeWidth: 2,
 			},
 			colors: ["black", "red", "blue", "green", "yellow", "white"],
+			key: {
+				black: "p",
+				red: "r",
+				blue: "b",
+				green: "g",
+				yellow: "y",
+				white: "e",
+				clear: "c",
+				download: "d",
+				"increase stroke width": "]",
+				"decrease stroke width": "[",
+			},
 		};
 	},
 
@@ -400,6 +422,7 @@ export default {
 <style>
 .vm--modal {
 	border-radius: 12px;
+	overflow: visible;
 }
 
 .board {
@@ -443,6 +466,42 @@ export default {
 	margin: 6px;
 	border: 1px solid #eeeeee;
 	box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+	position: relative;
+}
+
+.fab > span {
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.4s;
+
+	text-transform: capitalize;
+	white-space: pre;
+
+	position: absolute;
+	z-index: 1;
+	bottom: 125%;
+	background-color: rgb(51, 51, 51);
+	color: rgb(239, 239, 239);
+	font-family: "Roboto", arial, sans-serif;
+	border-radius: 4px;
+	font-size: 12px;
+	padding: 4px 12px;
+	box-shadow: rgba(0, 0, 0, 0.15) 1.95px 1.95px 2.6px;
+}
+.fab > span::after {
+	content: "";
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	margin-left: -5px;
+	border-width: 5px;
+	border-style: solid;
+	border-color: rgb(51, 51, 51) transparent transparent transparent;
+}
+
+.fab:hover > span {
+	visibility: visible;
+	opacity: 1;
 }
 
 button {
