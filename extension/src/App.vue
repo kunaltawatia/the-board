@@ -40,7 +40,7 @@
 						</div></div></span
 			></span>
 		</div>
-		<modal name="board" width="80%" height="80%">
+		<modal name="board" width="80%" height="80%" :draggable="true">
 			<board v-bind:boardId="boardId" v-bind:close="close" />
 		</modal>
 	</div>

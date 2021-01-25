@@ -8,9 +8,7 @@ import App from "./App.vue";
 import router from "./router.js";
 
 const socket = SocketIO(
-	process.env.NODE_ENV == "production"
-		? "/"
-		: "https://extension-server-eoyr2wb7oa-uc.a.run.app"
+	process.env.NODE_ENV == "production" ? "/" : "http://localhost:3000"
 );
 
 Vue.config.productionTip = false;

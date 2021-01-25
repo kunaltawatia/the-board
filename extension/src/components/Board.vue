@@ -1,6 +1,6 @@
 <template>
 	<div class="board" v-hotkey="keymap">
-		<div id="whiteboard-container" v-on:resize="resize">
+		<div id="whiteboard-container">
 			<canvas
 				id="whiteboard"
 				ref="wb"
@@ -17,11 +17,24 @@
 					v-bind:key="color"
 					:style="{ 'background-color': color }"
 					class="fab"
-					@click="() => changeColor(color)"
+					@click="
+						(event) => {
+							event.stopPropagation(),
+							changeColor(color);
+						}
+					"
 				>
 					<span>{{ color }} {{ `\n( ${key[color]} )` }}</span>
 				</button>
-				<button class="fab" @click="() => clear(true)">
+				<button
+					class="fab"
+					@click="
+						(event) => {
+							event.stopPropagation();
+							clear(true);
+						}
+					"
+				>
 					<span>{{ `clear \n( ${key.clear} )` }}</span>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"
@@ -149,7 +162,7 @@
 					</svg>
 				</button>
 				<p style="font-family: 'Roboto', arial, sans-serif; color: #707070">
-					{{ current.strokeWidth }}
+					{{ current.strokeWidth / 2 }}
 				</p>
 				<button class="fab" @click="increaseStrokeWidth">
 					<span>{{
@@ -195,6 +208,12 @@
 				</button>
 			</div>
 		</div>
+		<div v-if="!connected" class="loading-container">
+			<div class="lds-ripple">
+				<div></div>
+				<div></div>
+			</div>
+		</div>
 	</div>
 </template>
 
@@ -206,7 +225,7 @@ export default {
 	props: ["boardId", "close"],
 	data() {
 		return {
-			isConnected: false,
+			connected: false,
 			drawing: false,
 			current: {
 				color: "black",
@@ -235,14 +254,6 @@ export default {
 	},
 
 	sockets: {
-		connect() {
-			this.isConnected = true;
-		},
-
-		disconnect() {
-			this.isConnected = false;
-		},
-
 		draw(data) {
 			const { slug, action } = data;
 			if (this.boardId == slug) {
@@ -251,6 +262,7 @@ export default {
 		},
 
 		drawBurst(actions) {
+			this.connected = true;
 			for (let action of actions) {
 				this.drawAction(action);
 			}
@@ -262,10 +274,12 @@ export default {
 	},
 
 	methods: {
-		decreaseStrokeWidth() {
+		decreaseStrokeWidth(event) {
+			event?.stopPropagation?.();
 			this.current.strokeWidth = Math.max(2, this.current.strokeWidth - 2);
 		},
-		increaseStrokeWidth() {
+		increaseStrokeWidth(event) {
+			event?.stopPropagation?.();
 			this.current.strokeWidth = Math.min(32, this.current.strokeWidth + 2);
 		},
 
@@ -340,23 +354,27 @@ export default {
 		},
 
 		mousedown(e) {
+			e?.stopPropagation?.();
 			this.drawing = true;
 			this.setCurrent(this.normalizeMouse(e));
 		},
 
 		mouseup(e) {
+			e?.stopPropagation?.();
 			if (!this.drawing) return;
 			this.addStroke(e);
 			this.drawing = false;
 		},
 
 		mousemove(e) {
+			e?.stopPropagation?.();
 			if (!this.drawing) return;
 			this.addStroke(e);
 			this.setCurrent(this.normalizeMouse(e));
 		},
 
 		throttle(e) {
+			e?.stopPropagation?.();
 			const time = new Date().getTime();
 			if (time - this.current.previousDrawTime >= 10) {
 				this.current.previousDrawTime = time;
@@ -378,7 +396,8 @@ export default {
 			this.current.color = color;
 		},
 
-		download() {
+		download(event) {
+			event?.stopPropagation?.();
 			const canvas = this.$refs.wb;
 			let image = canvas.toDataURL("image/jpeg", 1.0);
 
@@ -430,6 +449,8 @@ export default {
 	flex-direction: column;
 	height: calc(100% - 24px);
 	padding: 12px;
+	border-radius: 12px;
+	background-color: #f8f8f8;
 }
 
 #whiteboard-container {
@@ -514,5 +535,48 @@ button {
 
 button:focus {
 	outline: none;
+}
+
+.loading-container {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: calc(100% - 24px);
+	width: calc(100% - 24px);
+	background-color: #eeeeee;
+	border-radius: 8px;
+}
+.lds-ripple {
+	display: inline-block;
+	position: relative;
+	width: 80px;
+	height: 80px;
+}
+.lds-ripple div {
+	position: absolute;
+	border: 4px solid rgb(125, 123, 123);
+	opacity: 1;
+	border-radius: 50%;
+	animation: lds-ripple 1s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+.lds-ripple div:nth-child(2) {
+	animation-delay: -0.5s;
+}
+@keyframes lds-ripple {
+	0% {
+		top: 36px;
+		left: 36px;
+		width: 0;
+		height: 0;
+		opacity: 1;
+	}
+	100% {
+		top: 0px;
+		left: 0px;
+		width: 72px;
+		height: 72px;
+		opacity: 0;
+	}
 }
 </style>

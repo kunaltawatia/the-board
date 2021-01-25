@@ -5,7 +5,7 @@
 			<input type="text" name="boardurl" required />
 			<button id="submit" type="submit" @click="show">Join</button>
 		</form>
-		<modal name="board" width="80%" height="80%">
+		<modal name="board" width="80%" height="80%" :draggable="true">
 			<board v-bind:boardId="boardId" v-bind:close="close" />
 		</modal>
 	</div>
