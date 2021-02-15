@@ -22,12 +22,10 @@ Vue.use(
 
 Vue.use(VModal);
 
-function mount() {
-	console.log("Checking to Mount...");
-	let buttonBar = document.querySelector(
-		window.history.state ? ".NzPR9b" : "body"
-	);
-	if (buttonBar) {
+const mount = () => {
+	let buttonBar = document.querySelector(".NzPR9b");
+	let meetborad = document.getElementById("meetboard-mount");
+	if (buttonBar && !meetborad) {
 		let element = document.createElement("div", { id: "vue-extension" });
 		buttonBar.innerHTML = '<div class="qO3Z3c"></div>' + buttonBar.innerHTML; // add divider
 		buttonBar.prepend(element);
@@ -36,11 +34,9 @@ function mount() {
 			router,
 			render: (h) => h(App),
 		}).$mount(element);
-		console.log("Mounted!");
-	} else {
-		setTimeout(mount, 1000);
-	}
-	return;
-}
 
-mount();
+		console.log("Mounted!");
+	}
+};
+
+setInterval(mount, 1000);

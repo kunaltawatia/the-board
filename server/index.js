@@ -1,3 +1,5 @@
+require("dotenv").config();
+
 const express = require("express");
 const app = express();
 const http = require("http").createServer(app);
@@ -7,7 +9,16 @@ const io = require("socket.io")(http, {
 		methods: ["GET", "POST"],
 	},
 });
-const shajs = require("sha.js");
+
+const redis = require("redis");
+let client =
+	process.env.STORE == "redis"
+		? process.env.REDIS == "remote"
+			? redis.createClient(process.env.REDIS_URL, {
+					password: process.env.REDIS_PASS,
+			  })
+			: redis.createClient()
+		: null;
 
 const port = parseInt(process.env.PORT || "3000");
 
@@ -20,41 +31,65 @@ http.listen(port);
  * SOCKETS AHEAD !
  */
 
-let actions = {};
+class LocalStore {
+	actions = {};
+	putData = ({ slug, action }) => {
+		if (slug in this.actions) this.actions[slug].push(action);
+		else this.actions[slug] = [action];
+	};
+	getData = (slug, cb) => {
+		let data = null;
+		if (slug in this.actions) data = this.actions[slug];
+		else data = [];
+		cb(data);
+	};
+	clearData = (slug) => {
+		if (slug in this.actions) delete this.actions[slug];
+	};
+}
 
-const putData = ({ slug, action }) => {
-	if (slug in actions) actions[slug].push(action);
-	else actions[slug] = [action];
-};
+class RedisStore {
+	putData = ({ slug, action }) => {
+		if (!slug) return;
+		const start = Date.now();
+		client.rpush(slug, JSON.stringify(action), () => {
+			console.log("PUT time: ", Date.now() - start, "ms");
+		});
+	};
+	getData = (slug, cb) => {
+		if (!slug) return cb([]);
+		const start = Date.now();
+		client.lrange(slug, 0, -1, (err, reply) => {
+			console.log("GET time: ", Date.now() - start, "ms");
+			let data = null;
+			if (!err) data = reply.map(JSON.parse);
+			cb(data ?? []);
+		});
+	};
+	clearData = (slug) => {
+		if (!slug) return;
+		const start = Date.now();
+		client.del(slug, () => {
+			console.log("DELETE time: ", Date.now() - start, "ms");
+		});
+	};
+}
 
-const getData = (slug) => {
-	if (slug in actions) return actions[slug];
-	else return [];
-};
-
-const clearData = (slug) => {
-	if (slug in actions) delete actions[slug];
-};
+const store =
+	process.env.STORE == "redis" ? new RedisStore() : new LocalStore();
 
 io.on("connection", (socket) => {
-	socket.on("newBoard", () => {
-		const timestamp = Date.now();
-		const ip = socket.handshake.address;
-		const slug = shajs("sha256").update(`${ip}000${timestamp}`).digest("hex");
-		socket.emit("newBoard", slug);
-	});
-
 	socket.on("getBoard", (slug) => {
-		socket.emit("drawBurst", getData(slug));
+		store.getData(slug, (data) => socket.emit("drawBurst", data));
 	});
 
 	socket.on("draw", (data) => {
-		putData(data);
+		store.putData(data);
 		socket.broadcast.emit("draw", data);
 	});
 
 	socket.on("clear", (slug) => {
-		clearData(slug);
+		store.clearData(slug);
 		socket.broadcast.emit("clear");
 	});
 });

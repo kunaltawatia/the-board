@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div id="meetboard-mount">
 		<div
 			jsshadow=""
 			role="button"
