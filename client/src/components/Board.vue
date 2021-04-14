@@ -19,7 +19,7 @@
 					class="fab"
 					@click="
 						(event) => {
-							event.stopPropagation(),
+							event.stopPropagation();
 							changeColor(color);
 						}
 					"
@@ -208,17 +208,26 @@
 				</button>
 			</div>
 		</div>
-		<div v-if="!connected" class="loading-container">
+		<div v-if="!connected && !deprecated" class="loading-container">
 			<div class="lds-ripple">
 				<div></div>
 				<div></div>
 			</div>
+		</div>
+		<div v-if="deprecated" class="loading-container">
+			<p>🙈 Thank you for all your support!</p>
+			<p>
+				We were able to serve 1k+ users worldwide and we take pride in it,
+				however, due to server costs and other commitments we cannot sustain
+				this project any further. We are sorry to let you down like this.😔
+			</p>
 		</div>
 	</div>
 </template>
 
 <script>
 import { jsPDF } from "jspdf";
+import SocketIO from "socket.io-client";
 
 export default {
 	name: "Board",
@@ -226,6 +235,7 @@ export default {
 	data() {
 		return {
 			connected: false,
+			deprecated: false,
 			drawing: false,
 			current: {
 				color: "black",
@@ -250,27 +260,33 @@ export default {
 
 	mounted() {
 		this.resize();
-		this.$socket.emit("getBoard", this.boardId);
-	},
+		this.$socket = SocketIO(
+			//  "http://localhost:3000"
+			"https://extension.webug.space"
+		);
 
-	sockets: {
-		draw(data) {
+		this.$socket.on("draw", (data) => {
 			const { slug, action } = data;
 			if (this.boardId == slug) {
 				this.drawAction(action);
 			}
-		},
-
-		drawBurst(actions) {
+		});
+		this.$socket.on("drawBurst", (actions) => {
 			this.connected = true;
 			for (let action of actions) {
 				this.drawAction(action);
 			}
-		},
-
-		clear() {
+		});
+		this.$socket.on("clear", () => {
 			this.clear();
-		},
+		});
+		this.$socket.on("connect", () => {
+			this.$socket.emit("getBoard", this.boardId);
+		});
+	},
+
+	beforeDestroy() {
+		if (this.$socket.connected) this.$socket.disconnect();
 	},
 
 	methods: {
@@ -314,7 +330,7 @@ export default {
 			if (emit) {
 				this.$socket.emit("draw", {
 					slug: this.boardId,
-					action: { x0, y0, x1, y1, color, strokeWidth },
+					action: { x0, y0, x1, y1, color, strokeWidth, time: Date.now() },
 				});
 			}
 		},
@@ -542,11 +558,25 @@ button:focus {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: calc(100% - 24px);
-	width: calc(100% - 24px);
+	height: calc(100% - 24px - 8rem);
+	width: calc(100% - 24px - 8rem);
 	background-color: #eeeeee;
 	border-radius: 8px;
+	flex-direction: column;
+	padding: 4rem;
 }
+
+.loading-container > p {
+	text-align: center;
+	font-family: "Roboto", arial, sans-serif;
+	font-size: 12px;
+}
+
+.loading-container > p:first-child {
+	font-size: 14px;
+	font-weight: bold;
+}
+
 .lds-ripple {
 	display: inline-block;
 	position: relative;

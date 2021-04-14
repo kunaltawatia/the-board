@@ -11,7 +11,9 @@ const io = require("socket.io")(http, {
 });
 
 const redis = require("redis");
-let client =
+const { createAdapter } = require("socket.io-redis");
+
+const client =
 	process.env.STORE == "redis"
 		? process.env.REDIS == "remote"
 			? redis.createClient(process.env.REDIS_URL, {
@@ -20,10 +22,14 @@ let client =
 			: redis.createClient()
 		: null;
 
+const pubClient = client;
+const subClient = pubClient?.duplicate?.() ?? null;
+if (process.env.STORE == "redis")
+	io.adapter(createAdapter({ pubClient, subClient }));
+
 const port = parseInt(process.env.PORT || "3000");
 
 app.use(express.static("dist"));
-app.get("/", (req, res) => res.send("server running!"));
 
 http.listen(port);
 
@@ -52,15 +58,12 @@ class RedisStore {
 	putData = ({ slug, action }) => {
 		if (!slug) return;
 		const start = Date.now();
-		client.rpush(slug, JSON.stringify(action), () => {
-			console.log("PUT time: ", Date.now() - start, "ms");
-		});
+		client.rpush(slug, JSON.stringify(action));
 	};
 	getData = (slug, cb) => {
 		if (!slug) return cb([]);
 		const start = Date.now();
 		client.lrange(slug, 0, -1, (err, reply) => {
-			console.log("GET time: ", Date.now() - start, "ms");
 			let data = null;
 			if (!err) data = reply.map(JSON.parse);
 			cb(data ?? []);
@@ -69,9 +72,7 @@ class RedisStore {
 	clearData = (slug) => {
 		if (!slug) return;
 		const start = Date.now();
-		client.del(slug, () => {
-			console.log("DELETE time: ", Date.now() - start, "ms");
-		});
+		client.del(slug);
 	};
 }
 

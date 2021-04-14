@@ -3,7 +3,7 @@ FROM node:14.15.4-alpine
 COPY package*.json /server/
 WORKDIR /server
 
-RUN npm install
+RUN npm install --production
 
 COPY . /server
 
