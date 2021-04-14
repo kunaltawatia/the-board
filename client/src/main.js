@@ -10,7 +10,7 @@ import router from "./router.js";
 // const socket = SocketIO(
 // 	process.env.NODE_ENV == "development"
 // 		? "http://localhost:3000"
-// 		: "https://extension.webug.space"
+// 		: "https://extension-v2.webug.space"
 // );
 
 Vue.config.productionTip = false;

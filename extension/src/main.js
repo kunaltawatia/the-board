@@ -7,7 +7,7 @@ import VModal from "vue-js-modal";
 import App from "./App.vue";
 import router from "./router.js";
 
-// const socket = SocketIO("https://extension.webug.space");
+// const socket = SocketIO("https://extension-v2.webug.space");
 
 Vue.config.productionTip = false;
 

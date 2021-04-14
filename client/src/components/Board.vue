@@ -262,7 +262,7 @@ export default {
 		this.resize();
 		this.$socket = SocketIO(
 			//  "http://localhost:3000"
-			"https://extension.webug.space"
+			"https://extension-v2.webug.space"
 		);
 
 		this.$socket.on("draw", (data) => {
