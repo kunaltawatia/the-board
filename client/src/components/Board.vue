@@ -237,6 +237,7 @@ export default {
 			connected: false,
 			deprecated: false,
 			drawing: false,
+			email: window.email,
 			current: {
 				color: "black",
 				previousDrawTime: 0,
@@ -261,7 +262,7 @@ export default {
 	mounted() {
 		this.resize();
 		this.$socket = SocketIO(
-			//  "http://localhost:3000"
+			// "http://localhost:3000"
 			"https://extension-v2.webug.space"
 		);
 
@@ -330,7 +331,16 @@ export default {
 			if (emit) {
 				this.$socket.emit("draw", {
 					slug: this.boardId,
-					action: { x0, y0, x1, y1, color, strokeWidth, time: Date.now() },
+					action: {
+						x0,
+						y0,
+						x1,
+						y1,
+						color,
+						strokeWidth,
+						time: Date.now(),
+						email: this.email,
+					},
 				});
 			}
 		},

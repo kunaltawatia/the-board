@@ -3,12 +3,17 @@ const redis = require("redis");
 
 const fs = require("fs");
 const { createCanvas } = require("canvas");
+const { exit } = require("process");
 
 const client = redis.createClient(process.env.REDIS_URL, {
 	password: process.env.REDIS_PASS,
 });
 
-function saveKey(key) {
+let total = 0,
+	totalWritten = 0,
+	totalDeleted = 0;
+
+function saveKey(key, del = false) {
 	const width = 1920;
 	const height = 1080;
 
@@ -46,14 +51,49 @@ function saveKey(key) {
 			drawAction(element);
 		});
 		const buffer = canvas.toBuffer("image/png");
-		fs.writeFileSync(`./images/${key}.png`, buffer);
+		fs.writeFile(`./images/${key}.png`, buffer, (err) => {
+			totalWritten++;
+			if (err) {
+				console.error(err);
+				checkDone();
+				return;
+			}
+			console.log(key, "written");
+			checkDone();
+		});
+		if (del)
+			client.del(key, (err) => {
+				totalDeleted++;
+				if (err) {
+					console.error(err);
+					checkDone();
+					return;
+				}
+				console.log(key, "deleted");
+				checkDone();
+			});
 	});
+}
+
+let del = process.env.CLEAR_REDIS === "true" ? true : false;
+function checkDone() {
+	if (!total || ((!del || total == totalDeleted) && total == totalWritten))
+		close();
+}
+
+function close() {
+	client.quit();
+	exit(0);
 }
 
 client.keys("*", (err, res) => {
 	if (err) console.error(err);
-	for (let index = 0; index < res.length; index++) {
+	total = res.length;
+	console.log("Total boards", total);
+	for (let index = 0; index < total; index++) {
 		const element = res[index];
-		saveKey(element);
+		console.log(element, "started");
+		saveKey(element, del);
 	}
+	checkDone();
 });

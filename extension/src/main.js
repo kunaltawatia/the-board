@@ -24,18 +24,27 @@ Vue.use(VModal);
 
 const mount = () => {
 	let buttonBar = document.querySelector(".NzPR9b");
-	let meetborad = document.getElementById("meetboard-mount");
-	if (buttonBar && !meetborad) {
+	let meetboard = document.getElementById("meetboard-mount");
+	if (document.scripts._ij) eval(document.scripts._ij.innerHTML);
+	let email = null;
+	window.IJ_values?.forEach((element) => {
+		if (
+			element?.match?.(
+				/(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))/
+			)
+		)
+			email = element;
+	});
+	if (email && buttonBar && !meetboard) {
+		window.email = email;
 		let element = document.createElement("div", { id: "vue-extension" });
 		buttonBar.innerHTML = '<div class="qO3Z3c"></div>' + buttonBar.innerHTML; // add divider
 		buttonBar.prepend(element);
-
 		new Vue({
 			router,
 			render: (h) => h(App),
 		}).$mount(element);
-
-		console.log("Mounted!");
+		console.log("whiteboard mounted!");
 	}
 };
 
